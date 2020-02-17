@@ -5,8 +5,8 @@
 Makes some assumptions about the layers you have setup in your map - read the docs
 
 
-v0.1	12-Feb-202	Nick McCloud
-Just getting the party started
+v0.1	12-Feb-2020	Nick McCloud	Just getting the party started
+v0.2	17-Feb-2020	Nick McCloud	Renamed array for tile output, fixed silly error in data output loop
 
 */
 
@@ -24,7 +24,7 @@ var ThirtyTwoTilesTxtFormat = {
     extension: "32Tiles",
 
     write: function(map, fileName) {
-        var output = "static const uint8_t map_tiles[] = {\n";
+        var output = "static const uint8_t terrainTiles[] = {\n";
 
 		var layer = map.layerAt(0);		// VERY BAD - assumes your map is on layer id 0
 
@@ -37,8 +37,8 @@ var ThirtyTwoTilesTxtFormat = {
 		
 		// This loop outputs the tile id's plus a row number at the end
 		for (y = 0; y < layer.height; y++) {
-			output += "\t" + decPadded(layer.cellAt(0, y).tileId, -4);
-			for (x = 1; x < layer.width; ++x)
+			output += "\t" + decPadded(layer.cellAt(0, y).tileId, -4);		// Do first entry (x=0)
+			for (x = 1; x < layer.width; x++)								// Loop for x = 1 onwards
 				output += "," + decPadded(layer.cellAt(x, y).tileId, -4);
 			output += ",\t//" + decPadded(y, -3) + "\n";
 		}
@@ -87,15 +87,17 @@ var ThirtyTwoDataTxtFormat = {
 		var height = layer0.height;
 		var width  = layer0.width;
 
+		// Output a header line
 		output += "\n//\t            " + decPadded(0, -2);
 		for (x = 1; x < width; x++)
 			output += "              " + decPadded(x, -2);
 		output += "\n\n";
 
+		// Combine data for tile map & attributes layers and output
 		for (y = 0; y < height; y++) {
 			output += "\t(" + shift3(layer1.cellAt(0, y).tileId) + " << 3) + " + decPadded(remapTransform(layer0.flagsAt(0, y)), -1);
-			for (x = 1; x < width; ++x)
-				output += ", (" + shift3(layer1.cellAt(0, y).tileId) + " << 3) + " + decPadded(remapTransform(layer0.flagsAt(x, y)), -1);
+			for (x = 1; x < width; x++)
+				output += ", (" + shift3(layer1.cellAt(x, y).tileId) + " << 3) + " + decPadded(remapTransform(layer0.flagsAt(x, y)), -1);
 			output += ",\t//" + decPadded(y, -3) + "\n";
 		}
 		
